@@ -30,6 +30,7 @@ func NewRouter(authSvc *auth.Service) *gin.Engine {
 	h := NewHandlers(authSvc)
 
 	r.POST("/auth/login", h.Login)
+	r.POST("/auth/register", h.Register)
 	r.POST("/auth/refresh", h.Refresh)
 
 	protected := r.Group("/")

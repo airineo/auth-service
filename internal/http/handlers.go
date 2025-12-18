@@ -3,14 +3,33 @@ package http
 import (
 	"net/http"
 	"os"
-
 	"auth-service/internal/auth"
-
 	"github.com/gin-gonic/gin"
 )
 
 type Handlers struct {
 	auth *auth.Service
+}
+
+type registerReq struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+	ClientID int64  `json:"clientId"`
+}
+
+func (h *Handlers) Register(c *gin.Context) {
+	var req registerReq
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid payload"})
+		return
+	}
+
+	if err := h.auth.Register(req.Email, req.Password, req.ClientID); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{"message": "user created"})
 }
 
 func NewHandlers(a *auth.Service) *Handlers {

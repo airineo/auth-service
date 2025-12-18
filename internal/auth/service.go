@@ -1,6 +1,9 @@
 package auth
 
-import "errors"
+import (
+	"errors"
+	"time"
+)
 
 var ErrInvalidCredentials = errors.New("invalid credentials")
 
@@ -72,4 +75,34 @@ func toInt64(v any) int64 {
 	default:
 		return 0
 	}
+}
+
+func (s *Service) Register(email, password string, clientID int64) error {
+	if email == "" || password == "" {
+		return errors.New("email and password required")
+	}
+
+	if len(password) < 8 {
+		return errors.New("password too short")
+	}
+
+	existing, _ := s.store.FindByEmail(email)
+	if existing != nil {
+		return errors.New("email already exists")
+	}
+
+	hash, err := HashPassword(password)
+	if err != nil {
+		return err
+	}
+
+	u := &User{
+		ID:           time.Now().UnixNano(), // demo ID
+		Email:        email,
+		PasswordHash: hash,
+		Role:         "user",
+		ClientID:     clientID,
+	}
+
+	return s.store.Create(u)
 }

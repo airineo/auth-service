@@ -1,15 +1,25 @@
 package auth
 
 import (
+	"errors"
 	"os"
 )
 
 type Store interface {
 	FindByEmail(email string) (*User, error)
+	Create(user *User) error
 }
 
 type memoryStore struct {
 	users map[string]User
+}
+
+func (m *memoryStore) Create(u *User) error {
+	if _, exists := m.users[u.Email]; exists {
+		return errors.New("email already exists")
+	}
+	m.users[u.Email] = *u
+	return nil
 }
 
 func NewMemoryStoreFromEnv() Store {
